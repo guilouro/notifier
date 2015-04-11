@@ -4,6 +4,7 @@ import tornado.web as web
 import tornado.ioloop as ioloop
 import redis
 import tornadoredis
+import json
 
 # Cliente do Redis síncrono (StrictRedis)
 # Eu costumo usar ele pra requisições simples como inserts, counts, etc
@@ -19,12 +20,12 @@ async_redis.connect()
 class BaseHandler(web.RequestHandler):
     """
     Extendi o RequestHandler do Tornado para criar um método simples que pega
-    o static_path nos settings da aplicação. A partir de agora, todos meus
-    handlers que precisarem dessa função para acessar os arquivos estáticos
-    podem extender essa classe.
+    o static_path nos settings da aplicação e concatena com o caminho dos
+    templates. A partir de agora, todos os handlers que precisarem dessa função
+    para renderizar os templates podem extender essa classe.
     """
-    def static_url(self):
-        return self.application.settings['static_path']
+    def templates_path(self):
+        return self.application.settings['static_path'] + '/templates'
 
 
 class MainHandler(BaseHandler):
@@ -32,35 +33,34 @@ class MainHandler(BaseHandler):
     O handler principal do projeto, nothing here!
     """
     def get(self):
-        self.render(self.static_url() + "/index.html")
+        self.render(self.templates_path() + "/home.html")
+
+
+class WorldHandler(BaseHandler):
+    """
+    Renderiza mensagens bufferizadas e form para envio de mensagens.
+    """
+
+    def get(self):
+        self.render(self.templates_path() + "/world.html")
 
 
 class UpdateHandler(BaseHandler):
     """
-    Esse handler trabalha de forma síncrona seguindo os seguintes passos:
-    1 - A aplicação recebe um request pra url '/update/' e despacha para o
-        handler;
-    2 - O handler possui a inteligência de reconhecer se essa requisição é um
-        GET ou um POST (ou um PATCH, UPDATE ou DELETE);
-    3 - Caso ele reconheça um GET, ele irá renderizar uma view contendo um
-        formulário para o envio de uma mensagem;
-    4 - Caso tenha sido um POST, ou seja, o formulário foi preenchido e enviado,
-        ele vai fazer um 'insert' na lista 'global_notifications'. Um insert na
-        lista pro redis é um push.
+    Trabalha de forma síncrona fazendo um 'insert' na lista
+    'global_notifications'. Um insert na lista pro redis é um push.
     """
 
-    def get(self):
-        self.render(self.static_url() + "/update.html")
-
     def post(self):
-        sync_redis.rpush('global_notifications',
-            self.get_body_argument('message'))
+        post_data = json.loads(self.request.body.decode("utf-8"))
+        message = post_data['message']
+        sync_redis.rpush('global_notifications', message)
         self.set_status(200)
 
 
 class FetchHandler(BaseHandler):
     """
-    Nesse handler acontece toda coisa assíncrona da seguinte forma:
+    Aqui acontece toda coisa assíncrona da seguinte forma:
     1 - A aplicação recebe um request pra url '/fetch/' e despacha para o
         handler;
     2 - O hander inicia uma tarefa assíncrona do Tornado (algo BEM parecido as
@@ -69,16 +69,21 @@ class FetchHandler(BaseHandler):
     3 - Essa tarefa chama o redis assíncrono para executar um blpop: cria e/ou
         começa a 'escutar' uma lista no Redis;
     4 - Caso não haja nenhuma entrada nessa lista, o cliente do Redis blocka
-        a requisição e espera um (in)determinado tempo (no caso 0, pra sempre)
-        até que o Redis encontre alguma entrada nessa lista e devolve o valor
-        dessa entrada;
+        a requisição e espera um (in)determinado tempo (no caso 15 segundos) até
+        que o Redis encontre alguma entrada nessa lista e devolve o valor dessa
+        entrada;
     5 - Se já existe alguma entrada nessa lista, o Redis devolve esse valor
         imediatamente;
     """
     @gen.coroutine
     def get(self):
-        response = yield gen.Task(async_redis.blpop,
-            'global_notifications', 0)
+        response = {'status': 0}
+        response['message'] = yield gen.Task(async_redis.blpop,
+            'global_notifications', 15)
+
+        if response['message']:
+            response['status'] = 1
+
         self.write(response)
 
 
@@ -87,6 +92,7 @@ application = web.Application(
     [
         # urls da aplicação
         (r"/", MainHandler),
+        (r"/world-chat", WorldHandler, None, 'world_chat'),
         (r"/fetch", FetchHandler),
         (r"/update", UpdateHandler),
     ],

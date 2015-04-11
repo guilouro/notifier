@@ -1,0 +1,29 @@
+{% extends ../static/templates/base.html %}
+
+{% block page_title %}Notifier World{% end %}
+
+{% block content %}
+
+    <section id="world-chat" ng-app="WorldChat" ng-controller="MainController">
+
+        <div class="page-header">
+            <h1>Realtime messages</h1>
+        </div>
+
+        <ul>
+            <li ng-repeat="message in messages">
+                {{!message}}
+            </li>
+        </ul>
+
+
+        <div class="form-group">
+            <label for="message">Leave your message to the World</label>
+            <textarea class="form-control" rows="3" name="message" ng-model="myMessage"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success" ng-click="sendMessage()">Shout!</button>
+
+    </section>
+
+{% end %}
