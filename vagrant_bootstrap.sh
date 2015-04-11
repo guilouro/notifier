@@ -5,6 +5,7 @@ apt-get install -y python-virtualenv
 apt-get install -y postgresql
 apt-get install -y libpq-dev
 apt-get install -y redis-server
+apt-get install -y git
 
 curl -sL https://deb.nodesource.com/setup | sudo bash -
 apt-get install -y nodejs
