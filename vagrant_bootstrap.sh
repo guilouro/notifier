@@ -8,6 +8,7 @@ apt-get install -y redis-server
 
 curl -sL https://deb.nodesource.com/setup | sudo bash -
 apt-get install -y nodejs
+apt-get install -y build-essential
 
 npm install -g bower
 npm install -g gulp
@@ -15,8 +16,6 @@ npm install -g gulp
 su vagrant << EOF
   cd ~
   virtualenv -p python3 env
-  # source env/bin/activate
-  # pip install -r /vagrant/requirements.txt
-  # cd /vagrant/carrotblanca
-  # python3 manage.py migrate
+  source env/bin/activate
+  pip install -r /vagrant/requirements.txt
 EOF
