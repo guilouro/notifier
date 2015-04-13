@@ -28,6 +28,5 @@ You are free to join the project.
 1. Fork the project
 2. Do your changes
 3. Make a PR
-4. 
 Or you can just open an issue.
 
