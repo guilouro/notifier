@@ -25,8 +25,10 @@ I'm still thinking on improvements...
 
 ## Contribute
 You are free to join the project.
+
 1. Fork the project
 2. Do your changes
 3. Make a PR
+
 Or you can just open an issue.
 
