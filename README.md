@@ -12,9 +12,10 @@ Open your terminal and get Notifier up & running:
 1. `$ cd path/to/notifier`
 2. `$ vagrant up`
 3. `$ vagrant ssh`
-4. `$ cd /vagrant/api`
-5. `$ python main.py`
-6. Go to 192.168.33.10:8080 and *BANG*!
+4. `$ source ~/env/bin/activate`
+5. `$ cd /vagrant/api`
+6. `$ python main.py`
+7. Go to 192.168.33.10:8080 and *BANG*!
 
 ## Beta Project
 The project is just a realtime public chat for now.
