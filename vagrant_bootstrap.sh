@@ -15,8 +15,9 @@ npm install -g bower
 npm install -g gulp
 
 su vagrant << EOF
-  cd ~
   virtualenv -p python3 env
-  source env/bin/activate
-  pip install -r /vagrant/requirements.txt
+  source ~/env/bin/activate
+  pip install -r /vagrant/api/requirements.txt
+  cd /vagrant/static
+  sudo bower install -f --allow-root
 EOF
