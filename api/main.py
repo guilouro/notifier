@@ -1,3 +1,4 @@
+#coding: utf8
 from tornado import gen
 import tornado.httpserver as httpserver
 import tornado.web as web
